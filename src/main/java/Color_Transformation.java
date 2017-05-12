@@ -13,23 +13,21 @@ import ij.gui.GenericDialog;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 
-/**
- * A template for processing each pixel of either
- * GRAY8, GRAY16, GRAY32 or COLOR_RGB images.
- *
- * @author Johannes Schindelin
- */
-public class Color_Transformation implements PlugInFilter {
+public class Color_Transformation implements PlugInFilter 
+{
 	
 	@Override
-	public int setup(String arg, ImagePlus imp) {
-            return 0;
+	public int setup(String arg, ImagePlus imp) 
+        {
+            showDialog();
+            
+            return DONE;
 		
 	}
 
 	@Override
-	public void run(ImageProcessor ip) {
-		
+	public void run(ImageProcessor ip) 
+        {
 	}
 
 	/**
@@ -40,21 +38,18 @@ public class Color_Transformation implements PlugInFilter {
 	 *
 	 * @param args unused
 	 */
-	public static void main(String[] args) {
-		// set the plugins.dir property to make the plugin appear in the Plugins menu
-		Class<?> clazz = Color_Transformation.class;
-		String url = clazz.getResource("/" + clazz.getName().replace('.', '/') + ".class").toString();
-		String pluginsDir = url.substring("file:".length(), url.length() - clazz.getName().length() - ".class".length());
-		System.setProperty("plugins.dir", pluginsDir);
-
-		// start ImageJ
-		new ImageJ();
-
-		// open the Clown sample
-		ImagePlus image = IJ.openImage("http://imagej.net/images/clown.jpg");
-		image.show();
-
-		// run the plugin
-		IJ.runPlugIn(clazz.getName(), "");
+	public static void main(String[] args) 
+        {
+		final ImageJ ij = new ImageJ();
+                
 	}
+        
+        void showDialog(){
+            String[] items = {"Normal", "Entropie"};
+            
+            GenericDialog dialog = new GenericDialog("Color transformation settings");
+            dialog.addChoice("Transformation mode", items, items[0]);
+            dialog.showDialog();
+            
+        }
 }

@@ -16,15 +16,15 @@ import ij.process.ImageProcessor;
 
 public class Color_Transformation implements PlugInFilter {
 
-    String mode_hintransformation = "";
-    String mode_rücktransformation = "";
+    String modus = "";
+    String farbmodell = "";
 
     ImagePlus[] imps = null;
     ImageProcessor[] ips = null;
 
     @Override
     public int setup(String arg, ImagePlus imp) {
-        if(showDialog()){
+        if (showDialog()) {
             return DOES_ALL;
         }
 
@@ -45,8 +45,8 @@ public class Color_Transformation implements PlugInFilter {
         int Y = 0;
         int U = 0;
         int V = 0;
-        
-        if (mode_hintransformation.equals("Transformation ohne Nachbarschaft")) {
+
+        if (modus.equals("Transformation ohne Nachbarschaft") && farbmodell.equals("RGB -> YUV")) {
             for (int spalte = 0; spalte < höhe; spalte++) {
                 for (int zeile = 0; zeile < breite; zeile++) {
                     pixel = ip.get(zeile, spalte);
@@ -55,13 +55,35 @@ public class Color_Transformation implements PlugInFilter {
                     G = ((pixel & 0x00ff00) >> 8);
                     B = (pixel & 0x0000ff);
 
-                    Y = (R + 2 * G + B) / 4;
+                    Y = (R + (2 * G) + B) / 4;
                     U = R - G;
                     V = B - G;
-                    
+
                     neuerPixel = Y;
                     neuerPixel = (neuerPixel << 8) + U;
                     neuerPixel = (neuerPixel << 8) + V;
+                    ip.putPixel(zeile, spalte, neuerPixel);
+
+                }
+            }
+        }
+
+        if (modus.equals("Transformation ohne Nachbarschaft") && farbmodell.equals("YUV -> RGB")) {
+            for (int spalte = 0; spalte < höhe; spalte++) {
+                for (int zeile = 0; zeile < breite; zeile++) {
+                    pixel = ip.get(zeile, spalte);
+
+                    Y = ((pixel & 0xff0000) >> 16);
+                    U = ((pixel & 0x00ff00) >> 8);
+                    V = (pixel & 0x0000ff);
+
+                    G = Y - ((U + V) / 4);
+                    R = U+G;
+                    B = V+G;
+
+                    neuerPixel = R;
+                    neuerPixel = (neuerPixel << 8) + G;
+                    neuerPixel = (neuerPixel << 8) + B;
                     ip.putPixel(zeile, spalte, neuerPixel);
 
                 }
@@ -83,24 +105,29 @@ public class Color_Transformation implements PlugInFilter {
     }
 
     boolean showDialog() {
-        String[] items = {
+        String[] farbmodelle = {
+            "RGB -> YUV",
+            "YUV -> RGB"
+        };
+
+        String[] modi = {
             "Transformation ohne Nachbarschaft",
             "Transformation + lineare Prädiktion",
             "Transformation + lineare Prädiktion(Mittelwert)",
             "Transformation + nichtlineare Prädiktion"};
 
         GenericDialog dialog = new GenericDialog("Color transformation settings");
-        dialog.addChoice("Hintransformation (RGB -> YUV)", items, items[0]);
-        dialog.addChoice("Rücktransformation (YUV -> RGB)", items, items[0]);
+        dialog.addChoice("Farbmodell", farbmodelle, farbmodelle[0]);
+        dialog.addChoice("Modus", modi, modi[0]);
 
         dialog.showDialog();
 
         // Der Okay Button wurde ausgelöst
         if (dialog.wasOKed()) {
-            mode_hintransformation = dialog.getNextChoice();
-            mode_rücktransformation = dialog.getNextChoice();
+            farbmodell = dialog.getNextChoice();
+            modus = dialog.getNextChoice();
             return true;
-            
+
         }
         return true;
 

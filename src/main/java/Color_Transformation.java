@@ -55,9 +55,9 @@ public class Color_Transformation implements PlugInFilter {
                     G = ((pixel & 0x00ff00) >> 8);
                     B = (pixel & 0x0000ff);
 
-                    Y = (R + (2 * G) + B) / 4;
-                    U = R - G;
+                    U = R - G;                                       
                     V = B - G;
+                    Y = G+((U+V)/4); 
 
                     neuerPixel = Y;
                     neuerPixel = (neuerPixel << 8) + U;
@@ -77,7 +77,7 @@ public class Color_Transformation implements PlugInFilter {
                     U = ((pixel & 0x00ff00) >> 8);
                     V = (pixel & 0x0000ff);
 
-                    G = Y - ((U + V) / 4);
+                    G = Y-((U+V)/4);
                     R = U+G;
                     B = V+G;
 

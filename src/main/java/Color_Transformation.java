@@ -22,6 +22,10 @@ public class Color_Transformation implements PlugInFilter {
     ImagePlus[] imps = null;
     ImageProcessor[] ips = null;
 
+    int addval = 1 << 8;
+    int addval2 = 1 << 7;
+    int addval3 = (1 << 8) - 1;
+
     @Override
     public int setup(String arg, ImagePlus imp) {
         if (showDialog()) {
@@ -36,7 +40,7 @@ public class Color_Transformation implements PlugInFilter {
     public void run(ImageProcessor ip) {
         IJ.showStatus("Hello");
         int breite = ip.getWidth();
-        int höhe = ip.getHeight();
+        int hoehe = ip.getHeight();
         int pixel = 0;
         int neuerPixel = 0;
         int R = 0;
@@ -45,9 +49,10 @@ public class Color_Transformation implements PlugInFilter {
         int Y = 0;
         int U = 0;
         int V = 0;
+        int tmpU, tmpV, tmpY;
 
         if (modus.equals("Transformation ohne Nachbarschaft") && farbmodell.equals("RGB -> YUV")) {
-            for (int spalte = 0; spalte < höhe; spalte++) {
+            for (int spalte = 0; spalte < hoehe; spalte++) {
                 for (int zeile = 0; zeile < breite; zeile++) {
                     pixel = ip.get(zeile, spalte);
 
@@ -55,13 +60,18 @@ public class Color_Transformation implements PlugInFilter {
                     G = ((pixel & 0x00ff00) >> 8);
                     B = (pixel & 0x0000ff);
 
-                    U = R - G;                                       
-                    V = B - G;
-                    Y = G+((U+V)/4); 
-
-                    neuerPixel = Y;
-                    neuerPixel = (neuerPixel << 8) + U;
-                    neuerPixel = (neuerPixel << 8) + V;
+                    U = ModuloRange( R-G, -addval2, addval2-1, addval);
+                    V = ModuloRange( B-G, -addval2, addval2-1, addval); 
+                    Y = G + ((U + V) / 4);
+                    
+                    tmpU = U + addval2;
+                    tmpV = V + addval2;
+                    tmpY = Y;
+                    
+                    
+                    neuerPixel = tmpY;
+                    neuerPixel = (neuerPixel << 8) + tmpU;
+                    neuerPixel = (neuerPixel << 8) + tmpV;
                     ip.putPixel(zeile, spalte, neuerPixel);
 
                 }
@@ -69,18 +79,31 @@ public class Color_Transformation implements PlugInFilter {
         }
 
         if (modus.equals("Transformation ohne Nachbarschaft") && farbmodell.equals("YUV -> RGB")) {
-            for (int spalte = 0; spalte < höhe; spalte++) {
+            for (int spalte = 0; spalte < hoehe; spalte++) {
                 for (int zeile = 0; zeile < breite; zeile++) {
                     pixel = ip.get(zeile, spalte);
-
+                    
+                    
+                    /*
                     Y = ((pixel & 0xff0000) >> 16);
-                    U = ((pixel & 0x00ff00) >> 8);
-                    V = (pixel & 0x0000ff);
+                    U = (pixel & 0x0000ff) - addval3;
+                    V = ((pixel & 0x00ff00) >> 8) - addval3;
 
-                    G = Y-((U+V)/4);
-                    R = U+G;
-                    B = V+G;
+                    G = Y - ((U + V) / 4);
+                    R = V+G;
+                    B = U+G;
+                    */
+                    
+                    
+                    Y = ((pixel & 0xff0000) >> 16);
+                    U = (pixel & 0x0000ff) - addval2;
+                    V = ((pixel & 0x00ff00) >> 8) - addval2;
 
+                    G = Y - ((U + V) / 4);
+                    R = ModuloRange( V+G, -addval2, addval2-1, addval);
+                    B = ModuloRange( U+G, -addval2, addval2-1, addval);
+                    
+                    
                     neuerPixel = R;
                     neuerPixel = (neuerPixel << 8) + G;
                     neuerPixel = (neuerPixel << 8) + B;
@@ -112,9 +135,9 @@ public class Color_Transformation implements PlugInFilter {
 
         String[] modi = {
             "Transformation ohne Nachbarschaft",
-            "Transformation + lineare Prädiktion",
-            "Transformation + lineare Prädiktion(Mittelwert)",
-            "Transformation + nichtlineare Prädiktion"};
+            "Transformation + lineare Praediktion",
+            "Transformation + lineare Praediktion(Mittelwert)",
+            "Transformation + nichtlineare Praediktion"};
 
         GenericDialog dialog = new GenericDialog("Color transformation settings");
         dialog.addChoice("Farbmodell", farbmodelle, farbmodelle[0]);
@@ -122,7 +145,7 @@ public class Color_Transformation implements PlugInFilter {
 
         dialog.showDialog();
 
-        // Der Okay Button wurde ausgelöst
+        // Der Okay Button wurde ausgeloest
         if (dialog.wasOKed()) {
             farbmodell = dialog.getNextChoice();
             modus = dialog.getNextChoice();
@@ -131,5 +154,16 @@ public class Color_Transformation implements PlugInFilter {
         }
         return true;
 
+    }
+
+    public static int ModuloRange(int e, int l, int u, int r) {
+        if (e > u) {
+            e = e - r;
+        } else if (e < l) {
+            e = e + r;
+        } else {
+            e = e;
+        }
+        return e;
     }
 }

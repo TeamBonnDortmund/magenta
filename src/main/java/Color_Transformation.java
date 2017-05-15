@@ -65,8 +65,8 @@ public class Color_Transformation implements PlugInFilter {
                     Y = G + ((U + V) / 4);
                     
                     neuerPixel = Y;
-                    neuerPixel = (neuerPixel << 8) + (U + addval2);
                     neuerPixel = (neuerPixel << 8) + (V + addval2);
+                    neuerPixel = (neuerPixel << 8) + (U + addval2);
                     ip.putPixel(zeile, spalte, neuerPixel);
 
                 }

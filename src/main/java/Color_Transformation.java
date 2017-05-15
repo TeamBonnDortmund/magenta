@@ -11,7 +11,6 @@ import ij.ImageJ;
 import ij.ImagePlus;
 import ij.gui.GenericDialog;
 import ij.plugin.filter.PlugInFilter;
-import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 
 public class Color_Transformation implements PlugInFilter {
@@ -31,24 +30,17 @@ public class Color_Transformation implements PlugInFilter {
         if (showDialog()) {
             return DOES_ALL;
         }
-
         return DONE;
-
     }
 
     @Override
     public void run(ImageProcessor ip) {
-        IJ.showStatus("Hello");
         int breite = ip.getWidth();
         int hoehe = ip.getHeight();
         int pixel = 0;
         int neuerPixel = 0;
-        int R = 0;
-        int G = 0;
-        int B = 0;
-        int Y = 0;
-        int U = 0;
-        int V = 0;
+        int R,G,B;
+        int Y,U,V = 0;
 
         if (modus.equals("Transformation ohne Nachbarschaft") && farbmodell.equals("RGB -> YUV")) {
             for (int spalte = 0; spalte < hoehe; spalte++) {
@@ -58,7 +50,6 @@ public class Color_Transformation implements PlugInFilter {
                     R = ((pixel & 0xff0000) >> 16);
                     G = ((pixel & 0x00ff00) >> 8);
                     B = (pixel & 0x0000ff);
-
                     
                     U = ModuloRange( B-G, -addval2, addval2-1, addval);
                     V = ModuloRange( R-G, -addval2, addval2-1, addval); 
@@ -68,7 +59,6 @@ public class Color_Transformation implements PlugInFilter {
                     neuerPixel = (neuerPixel << 8) + (V + addval2);
                     neuerPixel = (neuerPixel << 8) + (U + addval2);
                     ip.putPixel(zeile, spalte, neuerPixel);
-
                 }
             }
         }
@@ -78,32 +68,18 @@ public class Color_Transformation implements PlugInFilter {
                 for (int zeile = 0; zeile < breite; zeile++) {
                     pixel = ip.get(zeile, spalte);
                     
-                    
-                    
                     Y = ((pixel & 0xff0000) >> 16);
                     U = (pixel & 0x0000ff) - addval2;
                     V = ((pixel & 0x00ff00) >> 8) - addval2;
 
                     G = Y - ((U + V) / 4);
                     R = ModuloRange(V+G, 0, addval - 1, addval);
-                    B = ModuloRange(U+G,0, addval - 1, addval);
-                    
-                    
-                    /*
-                    Y = ((pixel & 0xff0000) >> 16);
-                    U = (pixel & 0x0000ff) - addval2;
-                    V = ((pixel & 0x00ff00) >> 8) - addval2;
-
-                    G = Y - ((U + V) / 4);
-                    R = ModuloRange( V+G, -addval2, addval2-1, addval);
-                    B = ModuloRange( U+G, -addval2, addval2-1, addval);
-                    */
+                    B = ModuloRange(U+G,0, addval - 1, addval);  
                     
                     neuerPixel = R;
                     neuerPixel = (neuerPixel << 8) + G;
                     neuerPixel = (neuerPixel << 8) + B;
                     ip.putPixel(zeile, spalte, neuerPixel);
-
                 }
             }
         }
@@ -145,10 +121,8 @@ public class Color_Transformation implements PlugInFilter {
             farbmodell = dialog.getNextChoice();
             modus = dialog.getNextChoice();
             return true;
-
         }
         return true;
-
     }
 
     public static int ModuloRange(int e, int l, int u, int r) {
@@ -156,8 +130,6 @@ public class Color_Transformation implements PlugInFilter {
             e = e - r;
         } else if (e < l) {
             e = e + r;
-        } else {
-            e = e;
         }
         return e;
     }

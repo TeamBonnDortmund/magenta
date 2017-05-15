@@ -49,7 +49,6 @@ public class Color_Transformation implements PlugInFilter {
         int Y = 0;
         int U = 0;
         int V = 0;
-        int tmpU, tmpV, tmpY;
 
         if (modus.equals("Transformation ohne Nachbarschaft") && farbmodell.equals("RGB -> YUV")) {
             for (int spalte = 0; spalte < hoehe; spalte++) {
@@ -60,18 +59,14 @@ public class Color_Transformation implements PlugInFilter {
                     G = ((pixel & 0x00ff00) >> 8);
                     B = (pixel & 0x0000ff);
 
-                    U = ModuloRange( R-G, -addval2, addval2-1, addval);
-                    V = ModuloRange( B-G, -addval2, addval2-1, addval); 
+                    
+                    U = ModuloRange( B-G, -addval2, addval2-1, addval);
+                    V = ModuloRange( R-G, -addval2, addval2-1, addval); 
                     Y = G + ((U + V) / 4);
                     
-                    tmpU = U + addval2;
-                    tmpV = V + addval2;
-                    tmpY = Y;
-                    
-                    
-                    neuerPixel = tmpY;
-                    neuerPixel = (neuerPixel << 8) + tmpU;
-                    neuerPixel = (neuerPixel << 8) + tmpV;
+                    neuerPixel = Y;
+                    neuerPixel = (neuerPixel << 8) + (U + addval2);
+                    neuerPixel = (neuerPixel << 8) + (V + addval2);
                     ip.putPixel(zeile, spalte, neuerPixel);
 
                 }
@@ -84,17 +79,17 @@ public class Color_Transformation implements PlugInFilter {
                     pixel = ip.get(zeile, spalte);
                     
                     
-                    /*
+                    
                     Y = ((pixel & 0xff0000) >> 16);
-                    U = (pixel & 0x0000ff) - addval3;
-                    V = ((pixel & 0x00ff00) >> 8) - addval3;
+                    U = (pixel & 0x0000ff) - addval2;
+                    V = ((pixel & 0x00ff00) >> 8) - addval2;
 
                     G = Y - ((U + V) / 4);
-                    R = V+G;
-                    B = U+G;
-                    */
+                    R = ModuloRange(V+G, 0, addval - 1, addval);
+                    B = ModuloRange(U+G,0, addval - 1, addval);
                     
                     
+                    /*
                     Y = ((pixel & 0xff0000) >> 16);
                     U = (pixel & 0x0000ff) - addval2;
                     V = ((pixel & 0x00ff00) >> 8) - addval2;
@@ -102,7 +97,7 @@ public class Color_Transformation implements PlugInFilter {
                     G = Y - ((U + V) / 4);
                     R = ModuloRange( V+G, -addval2, addval2-1, addval);
                     B = ModuloRange( U+G, -addval2, addval2-1, addval);
-                    
+                    */
                     
                     neuerPixel = R;
                     neuerPixel = (neuerPixel << 8) + G;

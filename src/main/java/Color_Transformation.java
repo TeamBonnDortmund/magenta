@@ -39,8 +39,8 @@ public class Color_Transformation implements PlugInFilter {
         int hoehe = ip.getHeight();
         int pixel = 0;
         int neuerPixel = 0;
-        int R,G,B;
-        int Y,U,V = 0;
+        int R, G, B;
+        int Y, U, V;
 
         if (modus.equals("Transformation ohne Nachbarschaft") && farbmodell.equals("RGB -> YUV")) {
             for (int spalte = 0; spalte < hoehe; spalte++) {
@@ -50,11 +50,11 @@ public class Color_Transformation implements PlugInFilter {
                     R = ((pixel & 0xff0000) >> 16);
                     G = ((pixel & 0x00ff00) >> 8);
                     B = (pixel & 0x0000ff);
-                    
-                    U = ModuloRange( B-G, -addval2, addval2-1, addval);
-                    V = ModuloRange( R-G, -addval2, addval2-1, addval); 
+
+                    U = ModuloRange(B - G, -addval2, addval2 - 1, addval);
+                    V = ModuloRange(R - G, -addval2, addval2 - 1, addval);
                     Y = G + ((U + V) / 4);
-                    
+
                     neuerPixel = Y;
                     neuerPixel = (neuerPixel << 8) + (V + addval2);
                     neuerPixel = (neuerPixel << 8) + (U + addval2);
@@ -67,15 +67,15 @@ public class Color_Transformation implements PlugInFilter {
             for (int spalte = 0; spalte < hoehe; spalte++) {
                 for (int zeile = 0; zeile < breite; zeile++) {
                     pixel = ip.get(zeile, spalte);
-                    
+
                     Y = ((pixel & 0xff0000) >> 16);
                     U = (pixel & 0x0000ff) - addval2;
                     V = ((pixel & 0x00ff00) >> 8) - addval2;
 
                     G = Y - ((U + V) / 4);
-                    R = ModuloRange(V+G, 0, addval - 1, addval);
-                    B = ModuloRange(U+G,0, addval - 1, addval);  
-                    
+                    R = ModuloRange(V + G, 0, addval - 1, addval);
+                    B = ModuloRange(U + G, 0, addval - 1, addval);
+
                     neuerPixel = R;
                     neuerPixel = (neuerPixel << 8) + G;
                     neuerPixel = (neuerPixel << 8) + B;
@@ -83,6 +83,59 @@ public class Color_Transformation implements PlugInFilter {
                 }
             }
         }
+
+        if (modus.equals("Transformation + nichtlineare Praediktion") && farbmodell.equals("RGB -> YUV")) {
+            int[][] pixelInput = ip.getIntArray();
+            int pixelOutput;
+            
+            for (int spalte = 0; spalte < hoehe; spalte++) {
+                for (int zeile = 0; zeile < breite; zeile++) {
+                    
+                    pixelOutput = ip.get(zeile, spalte);
+                    
+                    int a, b, c;
+
+                    if (spalte > 0 && zeile > 0) {
+                        a = ((pixelInput[zeile][spalte] & 0x00ff00) >> 8);
+                        b = ((pixelInput[zeile][spalte] & 0x00ff00) >> 8);
+                        c = ((pixelInput[zeile][spalte] & 0x00ff00) >> 8);
+
+                        if (c > a && c > b) {
+                            if (a < b) {
+                                G = a;
+                            } else {
+                                G = b;
+                            }
+                        } else if (c < a && c < b) {
+                            if (a > b) {
+                                G = a;
+                            } else {
+                                G = b;
+                            }
+                        } else {
+                            G = a-c+b;
+                        }
+                    } else {
+                        G = ((pixelOutput & 0x00ff00) >> 8);
+                    }
+                
+                    
+                    R = ((pixelOutput & 0xff0000) >> 16);
+                    B = (pixelOutput & 0x0000ff);
+                    
+
+                    U = ModuloRange(B - G, -addval2, addval2 - 1, addval);
+                    V = ModuloRange(R - G, -addval2, addval2 - 1, addval);
+                    Y = G + ((U + V) / 4);
+
+                    neuerPixel = Y;
+                    neuerPixel = (neuerPixel << 8) + (V + addval2);
+                    neuerPixel = (neuerPixel << 8) + (U + addval2);
+                    ip.putPixel(zeile, spalte, neuerPixel);
+                }
+            }
+        }
+
     }
 
     /**

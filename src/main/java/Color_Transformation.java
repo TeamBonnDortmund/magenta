@@ -93,13 +93,24 @@ public class Color_Transformation implements PlugInFilter {
                     
                     pixelOutput = ip.get(zeile, spalte);
                     
-                    int a, b, c;
+                    int a, b, c, x;
 
                     if (spalte > 0 && zeile > 0) {
-                        a = ((pixelInput[zeile][spalte] & 0x00ff00) >> 8);
-                        b = ((pixelInput[zeile][spalte] & 0x00ff00) >> 8);
-                        c = ((pixelInput[zeile][spalte] & 0x00ff00) >> 8);
+                        x = ((pixelInput[zeile][spalte] & 0x00ff00) >> 8);
+                        a = ((pixelInput[zeile][spalte-1] & 0x00ff00) >> 8);
+                        b = ((pixelInput[zeile-1][spalte] & 0x00ff00) >> 8);
+                        c = ((pixelInput[zeile-1][spalte-1] & 0x00ff00) >> 8);
+                        
+                        int[] tmp ={x,a,b,c};
+                        G = x; 
+                        
+                        for (int i = 1; i < 4; i++) {
+                            if(G < tmp[i]){
+                                G = tmp[i];
+                            }
+                        }
 
+                        /*
                         if (c > a && c > b) {
                             if (a < b) {
                                 G = a;
@@ -118,6 +129,7 @@ public class Color_Transformation implements PlugInFilter {
                     } else {
                         G = ((pixelOutput & 0x00ff00) >> 8);
                     }
+                     */
                 
                     
                     R = ((pixelOutput & 0xff0000) >> 16);
